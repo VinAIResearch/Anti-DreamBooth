@@ -1,0 +1,11 @@
+diffusers==0.13.0.dev0
+triton==2.0.0.dev20221031
+xformers==0.0.17.dev461
+transformers
+accelerate
+ftfy
+tensorboard
+Jinja2
+tqdm
+torchvision
+--extra-index-url https://download.pytorch.org/whl/cu113
