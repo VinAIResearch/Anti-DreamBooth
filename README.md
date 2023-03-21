@@ -2,8 +2,7 @@
 1. [Environment setup](#Environment-setup)
 2. [Dataset preparation](#Dataset-preparation)
 3. [How to run](#How-to-run)
-4. [Evaluation](#Evaluation)
-5. [Contacts](#Contacts)
+4. [Contacts](#Contacts)
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
 <div align="center">
@@ -24,20 +23,50 @@ Details of the model architecture and experimental results can be found in [our 
   year= {2023}
 }
 ```
- **Please CITE** our paper whenever this repository is used to help produce published results or incorporated into other software.
+**Please CITE** our paper whenever this repository is used to help produce published results or incorporated into other software.
+
+TODO:
+- [x] Validate E-ASPL
+- [x] Validate ASPL
+- [] Validate T-ASPL
+- [] Validate FSMG
+- [] Validate E-FSMG
+- [] Validate T-FSMG
 
 
-## Environment Setup
+## Environment setup
 
 Our code relies on the [stable diffusion code on Hugging Face](https://github.com/huggingface/diffusers).
 
 Install dependencies:
 ```shell
-cd anti-dreambooth
+cd Anti-Dreambooth
 conda create -n anti-dreambooth python=3.9  
 conda activate anti-dreambooth  
 pip install -r requirements.txt  
 ```
+
+Pretrained checkpoints of SD versions can be downloaded from provided links in the table below:
+<table style="width:100%">
+  <tr>
+    <th>Version</th>
+    <th>Link</th>
+  </tr>
+  <tr>
+    <td>2.1</td>
+    <td><a href="https://huggingface.co/stabilityai/stable-diffusion-2-1-base">stable-diffusion-2-1-base</a></td>
+  </tr>
+  <tr>
+    <td>1.5</td>
+    <td><a href="https://huggingface.co/runwayml/stable-diffusion-v1-5">stable-diffusion-v1-5</a></td>
+  </tr>
+  <tr>
+    <td>1.4</td>
+    <td><a href="https://huggingface.co/CompVis/stable-diffusion-v1-4">stable-diffusion-v1-4</a></td>
+  </tr>
+</table>
+
+Please put them in `.\stable-diffusion\`. Note: SD v2.1 is the default version of our experiments. 
 
 ## Dataset preparation
 We have experimented on these two datasets:
@@ -52,12 +81,12 @@ For convinient testing, we have provided a split set of one subject in VGGFace2 
 ## How to run
 To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can run
 ```bash
-  bash script/attack_with_aspl.sh
+bash script/attack_with_aspl.sh
 ```
 
 To defense Stable Diffusion version 2.1 (default) with targeted ASPL, you can run
 ```bash
-  bash script/attack_with_targeted_aspl.sh
+bash script/attack_with_targeted_aspl.sh
 ```
 
 The same running procedure is applied for other supported algorithms:
@@ -83,6 +112,11 @@ The same running procedure is applied for other supported algorithms:
     <td>scripts/attack_with_ensemble_fsmg.sh</td>
   </tr>
 </table>
+
+Inference: Generating examples with multiple-prompts
+```
+python infer.py --model_path <path to your model> --output_dir ./test-infer/
+```
 
 ## Contacts
 If you have any problems, please open an issue in this repository or ping an email to [tienhaophung@gmail.com](mailto:tienhaophung@gmail.com).

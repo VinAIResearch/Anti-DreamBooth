@@ -30,9 +30,6 @@ from transformers import AutoTokenizer, PretrainedConfig
 import copy
 
 
-# Will error if the minimal version of diffusers is not installed. Remove at your own risks.
-check_min_version("0.13.0.dev0")
-
 logger = get_logger(__name__)
 
 
@@ -238,6 +235,33 @@ def parse_args(input_args=None):
         help="The prompt with identifier specifying the instance",
     )
     parser.add_argument(
+        "--class_prompt",
+        type=str,
+        default=None,
+        help="The prompt to specify images in the same class as provided instance images.",
+    )
+    parser.add_argument(
+        "--with_prior_preservation",
+        default=False,
+        action="store_true",
+        help="Flag to add prior preservation loss.",
+    )
+    parser.add_argument(
+        "--prior_loss_weight",
+        type=float,
+        default=1.0,
+        help="The weight of prior preservation loss.",
+    )
+    parser.add_argument(
+        "--num_class_images",
+        type=int,
+        default=100,
+        help=(
+            "Minimal class images for prior preservation loss. If there are not enough images already present in"
+            " class_data_dir, additional images will be sampled with class_prompt."
+        ),
+    )
+    parser.add_argument(
         "--output_dir",
         type=str,
         default="text-inversion-model",
@@ -365,18 +389,15 @@ def parse_args(input_args=None):
 
     if args.with_prior_preservation:
         if args.class_data_dir is None:
-            raise ValueError(
-                "You must specify a data directory for class images.")
+            raise ValueError("You must specify a data directory for class images.")
         if args.class_prompt is None:
             raise ValueError("You must specify prompt for class images.")
     else:
         # logger is not available yet
         if args.class_data_dir is not None:
-            warnings.warn(
-                "You need not use --class_data_dir without --with_prior_preservation.")
+            warnings.warn("You need not use --class_data_dir without --with_prior_preservation.")
         if args.class_prompt is not None:
-            warnings.warn(
-                "You need not use --class_prompt without --with_prior_preservation.")
+            warnings.warn("You need not use --class_prompt without --with_prior_preservation.")
 
     return args
 
@@ -428,8 +449,7 @@ def train_one_epoch(
     # Load the tokenizer
 
     unet, text_encoder = copy.deepcopy(models[0]), copy.deepcopy(models[1])
-    params_to_optimize = itertools.chain(
-        unet.parameters(), text_encoder.parameters())
+    params_to_optimize = itertools.chain(unet.parameters(), text_encoder.parameters())
 
     optimizer = torch.optim.AdamW(
         params_to_optimize,
@@ -443,8 +463,8 @@ def train_one_epoch(
         data_tensor,
         args.instance_prompt,
         tokenizer,
-        None,
-        None,
+        args.class_data_dir,
+        args.class_prompt,
         args.resolution,
         args.center_crop,
     )
@@ -464,8 +484,7 @@ def train_one_epoch(
         pixel_values = torch.stack([step_data["instance_images"], step_data["class_images"]]).to(
             device, dtype=weight_dtype
         )
-        input_ids = torch.cat(
-            [step_data["instance_prompt_ids"], step_data["class_prompt_ids"]], dim=0).to(device)
+        input_ids = torch.cat([step_data["instance_prompt_ids"], step_data["class_prompt_ids"]], dim=0).to(device)
 
         latents = vae.encode(pixel_values).latent_dist.sample()
         latents = latents * vae.config.scaling_factor
@@ -474,8 +493,7 @@ def train_one_epoch(
         noise = torch.randn_like(latents)
         bsz = latents.shape[0]
         # Sample a random timestep for each image
-        timesteps = torch.randint(
-            0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
+        timesteps = torch.randint(0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
         timesteps = timesteps.long()
 
         # Add noise to the latents according to the noise magnitude at each timestep
@@ -486,8 +504,7 @@ def train_one_epoch(
         encoder_hidden_states = text_encoder(input_ids)[0]
 
         # Predict the noise residual
-        model_pred = unet(noisy_latents, timesteps,
-                          encoder_hidden_states).sample
+        model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
 
         # Get the target for loss depending on the prediction type
         if noise_scheduler.config.prediction_type == "epsilon":
@@ -495,21 +512,34 @@ def train_one_epoch(
         elif noise_scheduler.config.prediction_type == "v_prediction":
             target = noise_scheduler.get_velocity(latents, noise, timesteps)
         else:
-            raise ValueError(
-                f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+            raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-        loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
+        # with prior preservation loss
+        if args.with_prior_preservation:
+            model_pred, model_pred_prior = torch.chunk(model_pred, 2, dim=0)
+            target, target_prior = torch.chunk(target, 2, dim=0)
+
+            # Compute instance loss
+            instance_loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
+
+            # Compute prior loss
+            prior_loss = F.mse_loss(model_pred_prior.float(), target_prior.float(), reduction="mean")
+
+            # Add the prior loss to the instance loss.
+            loss = instance_loss + args.prior_loss_weight * prior_loss
+
+        else:
+            loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
 
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(
-            params_to_optimize, 1.0, error_if_nonfinite=True)
+        torch.nn.utils.clip_grad_norm_(params_to_optimize, 1.0, error_if_nonfinite=True)
         optimizer.step()
         optimizer.zero_grad()
         print(
             f"Step #{step}, loss: {loss.detach().item()}, prior_loss: {prior_loss.detach().item()}, instance_loss: {instance_loss.detach().item()}"
         )
 
-    return (unet, text_encoder)
+    return [unet, text_encoder]
 
 
 def pgd_attack(
@@ -619,6 +649,54 @@ def main(args):
 
     if args.seed is not None:
         set_seed(args.seed)
+    
+    # Generate class images if prior preservation is enabled.
+    if args.with_prior_preservation:
+        class_images_dir = Path(args.class_data_dir)
+        if not class_images_dir.exists():
+            class_images_dir.mkdir(parents=True)
+        cur_class_images = len(list(class_images_dir.iterdir()))
+
+        if cur_class_images < args.num_class_images:
+            torch_dtype = torch.float16 if accelerator.device.type == "cuda" else torch.float32
+            if args.prior_generation_precision == "fp32":
+                torch_dtype = torch.float32
+            elif args.prior_generation_precision == "fp16":
+                torch_dtype = torch.float16
+            elif args.prior_generation_precision == "bf16":
+                torch_dtype = torch.bfloat16
+            pipeline = DiffusionPipeline.from_pretrained(
+                args.pretrained_model_name_or_path,
+                torch_dtype=torch_dtype,
+                safety_checker=None,
+                revision=args.revision,
+            )
+            pipeline.set_progress_bar_config(disable=True)
+
+            num_new_images = args.num_class_images - cur_class_images
+            logger.info(f"Number of class images to sample: {num_new_images}.")
+
+            sample_dataset = PromptDataset(args.class_prompt, num_new_images)
+            sample_dataloader = torch.utils.data.DataLoader(sample_dataset, batch_size=args.sample_batch_size)
+
+            sample_dataloader = accelerator.prepare(sample_dataloader)
+            pipeline.to(accelerator.device)
+
+            for example in tqdm(
+                sample_dataloader,
+                desc="Generating class images",
+                disable=not accelerator.is_local_main_process,
+            ):
+                images = pipeline(example["prompt"]).images
+
+                for i, image in enumerate(images):
+                    hash_image = hashlib.sha1(image.tobytes()).hexdigest()
+                    image_filename = class_images_dir / f"{example['index'][i] + cur_class_images}-{hash_image}.jpg"
+                    image.save(image_filename)
+
+            del pipeline
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
     if args.allow_tf32:
         torch.backends.cuda.matmul.allow_tf32 = True
