@@ -2,25 +2,23 @@
 1. [Environment setup](#Environment-setup)
 2. [Dataset preparation](#Dataset-preparation)
 3. [How to run](#How-to-run)
-4. [Results](#Results)
-5. [Evaluation](#Evaluation)
-6. [Acknowledgments](#Acknowledgments)
-7. [Contacts](#Contacts)
+4. [Evaluation](#Evaluation)
+5. [Contacts](#Contacts)
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
 <div align="center">
     <img width="1000" alt="teaser" src="assets/Teaser.png"/>
 </div>
 
-```
-**Abstract**: Text-to-image diffusion models are nothing but a revolution, allowing anyone, even without design skills, to create realistic images from simple text inputs. With powerful personalization tools like DreamBooth, they can generate images of a specific person just by learning from his/her few reference images. However, when misused, such a powerful and convenient tool can produce fake news or disturbing content targeting any individual victim, posing a severe negative social impact. In this paper, we explore a defense system called Anti-DreamBooth against such malicious use of DreamBooth. The system aims to add subtle noise perturbation to each user's image before publishing in order to disrupt the generation quality of any DreamBooth model trained on these perturbed images. We investigate a wide range of algorithms for perturbation optimization and extensively evaluate them on two facial datasets over various text-to-image model versions. Despite the complicated formulation of DreamBooth and Diffusion-based text-to-image models, our methods effectively defend users from the malicious use of those models. Their effectiveness withstands even adverse conditions, such as model or prompt/term mismatching between training and testing.
-```
+> **Abstract**: Text-to-image diffusion models are nothing but a revolution, allowing anyone, even without design skills, to create realistic images from simple text inputs. With powerful personalization tools like DreamBooth, they can generate images of a specific person just by learning from his/her few reference images. However, when misused, such a powerful and convenient tool can produce fake news or disturbing content targeting any individual victim, posing a severe negative social impact. In this paper, we explore a defense system called Anti-DreamBooth against such malicious use of DreamBooth. The system aims to add subtle noise perturbation to each user's image before publishing in order to disrupt the generation quality of any DreamBooth model trained on these perturbed images. We investigate a wide range of algorithms for perturbation optimization and extensively evaluate them on two facial datasets over various text-to-image model versions. Despite the complicated formulation of DreamBooth and Diffusion-based text-to-image models, our methods effectively defend users from the malicious use of those models. Their effectiveness withstands even adverse conditions, such as model or prompt/term mismatching between training and testing.
+
+**TLDR**: A security booth safeguards your privacy against malicious threats by preventing DreamBooth from synthesizing photo-realistic images of the individual target.
 
 Details of the model architecture and experimental results can be found in [our following paper]():
 ```bibtex
-@article{,
+@article{le_etal2023antidreambooth,
   title={Anti-DreamBooth: Protecting users from personalized text-to-image synthesis},
-  author={Thanh Van Le, Hao Phung, Thuan Hoang Nguyen, Quan Dao and Anh Tran},
+  author={Thanh Van Le, Hao Phung, Thuan Hoang Nguyen, Quan Dao, Ngoc Tran and Anh Tran},
   journal={arxiv preprint},
   volume={arxiv:<id number>},
   year= {2023}
@@ -41,7 +39,7 @@ conda activate anti-dreambooth
 pip install -r requirements.txt  
 ```
 
-## Datasets
+## Dataset preparation
 We have experimented on these two datasets:
 - VGGFace2: contains around 3.31 million images of 9131 person identities. We only use subjects that have at least 15 images of resolution above $500 \times 500$.
 - CelebA-HQ: consists of 30,000 images at $1024 × 1024$ resolution. We
