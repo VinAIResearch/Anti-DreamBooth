@@ -113,4 +113,4 @@ python infer.py --model_path <path to DREAMBOOTH model>/checkpoint-1000 --output
 ```
 
 ## Contacts
-If you have any problems, please open an issue in this repository or ping an email to [tienhaophung@gmail.com](mailto:tienhaophung@gmail.com).
+If you have any problems, please open an issue in this repository.
