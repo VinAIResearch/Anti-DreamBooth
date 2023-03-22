@@ -91,7 +91,7 @@ The same running procedure is applied for other supported algorithms:
   </tr>
   <tr>
     <td>E-ASPL</td>
-    <td>scripts/attack_with_aspl.sh</td>
+    <td>scripts/attack_with_ensemble_aspl.sh</td>
   </tr>
   <tr>
     <td>FSMG</td>
