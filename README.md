@@ -40,7 +40,7 @@ conda activate anti-dreambooth
 pip install -r requirements.txt  
 ```
 
-Pretrained checkpoints of SD versions can be downloaded from provided links in the table below:
+Pretrained checkpoints of different Stable Diffusion versions can be downloaded from provided links in the table below:
 <table style="width:100%">
   <tr>
     <th>Version</th>
@@ -60,7 +60,7 @@ Pretrained checkpoints of SD versions can be downloaded from provided links in t
   </tr>
 </table>
 
-Please put them in `./stable-diffusion/`. Note: SD v2.1 is the default version in all of our experiments. 
+Please put them in `./stable-diffusion/`. Note: Stable Diffusion version 2.1 is the default version in all of our experiments. 
 
 ## Dataset preparation
 We have experimented on these two datasets:
