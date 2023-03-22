@@ -34,7 +34,7 @@ Our code relies on the [diffusers](https://github.com/huggingface/diffusers) lib
 
 Install dependencies:
 ```shell
-cd Anti-Dreambooth
+cd Anti-DreamBooth
 conda create -n anti-dreambooth python=3.9  
 conda activate anti-dreambooth  
 pip install -r requirements.txt  
