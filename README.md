@@ -13,7 +13,7 @@
 
 **TLDR**: A security booth safeguards your privacy against malicious threats by preventing DreamBooth from synthesizing photo-realistic images of the individual target.
 
-Details of the model architecture and experimental results can be found in [our following paper]():
+Details of algorithms and experimental results can be found in [our following paper]():
 ```bibtex
 @article{le_etal2023antidreambooth,
   title={Anti-DreamBooth: Protecting users from personalized text-to-image synthesis},
@@ -30,8 +30,8 @@ TODO:
 - [x] Validate ASPL
 - [x] Validate T-ASPL
 - [x] Validate FSMG
+- [x] Validate T-FSMG
 - [] Validate E-FSMG
-- [] Validate T-FSMG
 
 
 ## Environment setup

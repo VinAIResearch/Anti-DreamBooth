@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     # create & load model
     pipe = StableDiffusionPipeline.from_pretrained(
-        model_path,
+        args.model_path,
         torch_dtype=torch.float16,
         safety_checker=None,
         local_files_only=True,
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     for prompt in prompts:
         print(">>>>>>", prompt)
         norm_prompt = prompt.lower().replace(",", "").replace(" ", "_")
-        out_path = f"{output_dir}/{k}/{norm_prompt}"
+        out_path = f"{args.output_dir}/{k}/{norm_prompt}"
         os.makedirs(out_path, exist_ok=True)
         for i in range(2):
             images = pipe(
