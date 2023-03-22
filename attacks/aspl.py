@@ -657,7 +657,7 @@ def main(args):
 
     noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
 
-    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision)
+    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision).cuda()
 
     vae.requires_grad_(False)
 
@@ -694,7 +694,7 @@ def main(args):
         target_image = Image.open(target_image_path).convert("RGB").resize((args.resolution, args.resolution))
         target_image = np.array(target_image)[None].transpose(0, 3, 1, 2)
         
-        target_image_tensor = (torch.from_numpy(target_image).to(dtype=torch.float32) / 127.5 - 1.0)
+        target_image_tensor = (torch.from_numpy(target_image).to("cuda", dtype=torch.float32) / 127.5 - 1.0)
         target_latent_tensor = vae.encode(target_image_tensor).latent_dist.sample().to(dtype=torch.bfloat16) * vae.config.scaling_factor
         target_latent_tensor = target_latent_tensor.repeat(len(perturbed_data), 1, 1, 1).cuda()
 

@@ -28,7 +28,7 @@ Details of the model architecture and experimental results can be found in [our 
 TODO:
 - [x] Validate E-ASPL
 - [x] Validate ASPL
-- [] Validate T-ASPL
+- [x] Validate T-ASPL
 - [] Validate FSMG
 - [] Validate E-FSMG
 - [] Validate T-FSMG
@@ -113,7 +113,7 @@ The same running procedure is applied for other supported algorithms:
   </tr>
 </table>
 
-Inference: Generating examples with multiple-prompts
+Inference: generates examples with multiple-prompts
 ```
 python infer.py --model_path <path to your model> --output_dir ./test-infer/
 ```

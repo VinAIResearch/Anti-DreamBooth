@@ -1,9 +1,12 @@
-export EXPERIMENT_NAME="ASPL"
-export MODEL_PATH="CompVis/stable-diffusion-2-1-base"
+export EXPERIMENT_NAME="T-ASPL"
+export MODEL_PATH="./stable-diffusion/stable-diffusion-2-1-base"
 export CLEAN_TRAIN_DIR="data/n000050/set_A" 
 export CLEAN_ADV_DIR="data/n000050/set_B"
 export OUTPUT_DIR="outputs/$EXPERIMENT_NAME/n000050_ADVERSARIAL"
+export CLASS_DIR="data/class-person"
 
+
+# ------------------------- Train T-ASPL on set B -------------------------
 mkdir -p $OUTPUT_DIR
 cp -r $CLEAN_TRAIN_DIR $OUTPUT_DIR/image_clean
 cp -r $CLEAN_ADV_DIR $OUTPUT_DIR/image_before_addding_noise
@@ -14,8 +17,13 @@ accelerate launch attacks/aspl.py \
   --instance_data_dir_for_train=$CLEAN_TRAIN_DIR \
   --instance_data_dir_for_adversarial=$CLEAN_ADV_DIR \
   --instance_prompt="a photo of sks person" \
+  --class_data_dir=$CLASS_DIR \
+  --num_class_images=200 \
+  --class_prompt="a photo of person" \
   --output_dir=$OUTPUT_DIR \
   --center_crop \
+  --with_prior_preservation \
+  --prior_loss_weight=1.0 \
   --resolution=512 \
   --train_text_encoder \
   --train_batch_size=1 \
@@ -28,7 +36,8 @@ accelerate launch attacks/aspl.py \
   --pgd_eps=5e-2 \
   --target_image_path="data/target.jpg" 
 
-export CLASS_DIR="data/class-person"
+
+# ------------------------- Train DreamBooth on perturbed examples -------------------------
 export INSTANCE_DIR="$OUTPUT_DIR/noise-ckpt/50"
 export DREAMBOOTH_OUTPUT_DIR="outputs/$EXPERIMENT_NAME/n000050_DREAMBOOTH"
 
@@ -52,7 +61,7 @@ accelerate launch train_dreambooth.py \
   --lr_warmup_steps=0 \
   --num_class_images=200 \
   --max_train_steps=1000 \
-  --checkpointing_steps500 \
+  --checkpointing_steps=500 \
   --center_crop \
   --mixed_precision=bf16 \
   --prior_generation_precision=bf16 \
