@@ -109,7 +109,7 @@ The same running procedure is applied for other supported algorithms:
 
 Inference: generates examples with multiple-prompts
 ```
-python infer.py --model_path <path to your model> --output_dir ./test-infer/
+python infer.py --model_path <path to DREAMBOOTH model>/checkpoint-1000 --output_dir ./test-infer/
 ```
 
 ## Contacts
