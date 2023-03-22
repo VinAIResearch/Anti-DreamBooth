@@ -449,7 +449,6 @@ def pgd_attack(
         else:
             raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
-        # no prior preservation
         unet.zero_grad()
         text_encoder.zero_grad()
         loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
@@ -504,12 +503,12 @@ def main(args):
         torch.backends.cuda.matmul.allow_tf32 = True
 
     clean_data = load_data(
-        args.instance_data_dir_for_train,
+        args.instance_data_dir,
         size=args.resolution,
         center_crop=args.center_crop,
     )
     perturbed_data = load_data(
-        args.instance_data_dir_for_adversarial,
+        args.instance_data_dir,
         size=args.resolution,
         center_crop=args.center_crop,
     )
@@ -544,13 +543,13 @@ def main(args):
         # update
         perturbed_data = en_data
 
-        if (i+1) % args.checkpointing_iterations == 0:
+        if (i+1) % args.checkpointing_steps == 0:
             save_folder = f"{args.output_dir}/noise-ckpt/{i+1}"
             os.makedirs(save_folder, exist_ok=True)
             noised_imgs = perturbed_data.detach()
             img_names = [
                 str(instance_path).split("/")[-1]
-                for instance_path in list(Path(args.instance_data_dir_for_adversarial).iterdir())
+                for instance_path in list(Path(args.instance_data_dir).iterdir())
             ]
             for img_pixel, img_name in zip(noised_imgs, img_names):
                 save_path = os.path.join(save_folder, f"{i+1}_noise_{img_name}")

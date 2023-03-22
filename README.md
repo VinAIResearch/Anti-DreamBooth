@@ -5,6 +5,8 @@
 4. [Contacts](#Contacts)
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
+<a href=""><img src="https://img.shields.io/badge/ARXIV-Article--ID-red??style=flat"></a>
+<a href=""><img src="https://img.shields.io/badge/Website-Project%20Page-blue?style=flat"></a>
 <div align="center">
     <img width="1000" alt="teaser" src="assets/Teaser.png"/>
 </div>
@@ -24,14 +26,6 @@ Details of algorithms and experimental results can be found in [our following pa
 }
 ```
 **Please CITE** our paper whenever this repository is used to help produce published results or incorporated into other software.
-
-TODO:
-- [x] Validate E-ASPL
-- [x] Validate ASPL
-- [x] Validate T-ASPL
-- [x] Validate FSMG
-- [x] Validate T-FSMG
-- [] Validate E-FSMG
 
 
 ## Environment setup
@@ -66,7 +60,7 @@ Pretrained checkpoints of SD versions can be downloaded from provided links in t
   </tr>
 </table>
 
-Please put them in `.\stable-diffusion\`. Note: SD v2.1 is the default version of our experiments. 
+Please put them in `./stable-diffusion/`. Note: SD v2.1 is the default version of our experiments. 
 
 ## Dataset preparation
 We have experimented on these two datasets:
