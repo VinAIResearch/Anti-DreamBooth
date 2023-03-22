@@ -68,9 +68,9 @@ We have experimented on these two datasets:
 - CelebA-HQ: consists of 30,000 images at $1024 × 1024$ resolution. We
 use the annotated subset from [here](https://github.com/ndb796/CelebA-HQ-Face-Identity-and-Attributes-Recognition-PyTorch) that filters and groups images into 307 subjects with at least 15 images for each subject.
 
-In this research, we select the first 50 identities in each dataset where only the first 12 images of the individual subject are used. These examples are evenly divided into 3 subsets, including the reference clean set (set A), the target projecting set (set B), and an extra clean set for uncontrolled setting experiments (set C). *These full split sets of each dataset will be provided soon!*
+In this research, we select 50 identities in each dataset where only the first 12 images of the individual subject are used. These examples are evenly divided into 3 subsets, including the reference clean set (set A), the target projecting set (set B), and an extra clean set for uncontrolled setting experiments (set C). *These full split sets of each dataset will be provided soon!*
 
-For convinient testing, we have provided a split set of one subject in VGGFace2 at `./data/n000050/`.
+For convenient testing, we have provided a split set of one subject in VGGFace2 at `./data/n000050/`.
 
 ## How to run
 To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can run
