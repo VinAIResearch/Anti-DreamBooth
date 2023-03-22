@@ -75,12 +75,12 @@ For convenient testing, we have provided a split set of one subject in VGGFace2 
 ## How to run
 To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can run
 ```bash
-bash script/attack_with_aspl.sh
+bash scripts/attack_with_aspl.sh
 ```
 
 To defense Stable Diffusion version 2.1 (default) with targeted ASPL, you can run
 ```bash
-bash script/attack_with_targeted_aspl.sh
+bash scripts/attack_with_targeted_aspl.sh
 ```
 
 The same running procedure is applied for other supported algorithms:
