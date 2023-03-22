@@ -1,32 +1,28 @@
 import argparse
+import copy
+import hashlib
 import itertools
 import logging
 import os
 from pathlib import Path
-import numpy as np
-
-import torch
-import torch.nn.functional as F
-import torch.utils.checkpoint
-from torch.utils.data import Dataset
 
 import datasets
 import diffusers
+import numpy as np
+import torch
+import torch.nn.functional as F
+import torch.utils.checkpoint
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    UNet2DConditionModel,
-)
+from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
 from diffusers.utils.import_utils import is_xformers_available
 from PIL import Image
+from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
-import copy
 
 
 logger = get_logger(__name__)
@@ -117,9 +113,7 @@ def import_model_class_from_model_name_or_path(pretrained_model_name_or_path: st
 
         return CLIPTextModel
     elif model_class == "RobertaSeriesModelWithTransformation":
-        from diffusers.pipelines.alt_diffusion.modeling_roberta_series import (
-            RobertaSeriesModelWithTransformation,
-        )
+        from diffusers.pipelines.alt_diffusion.modeling_roberta_series import RobertaSeriesModelWithTransformation
 
         return RobertaSeriesModelWithTransformation
     else:
@@ -243,22 +237,22 @@ def parse_args(input_args=None):
         help="Batch size (per device) for the training dataloader.",
     )
     parser.add_argument(
-        "--max_train_steps", 
-        type=int, 
+        "--max_train_steps",
+        type=int,
         default=20,
         help="Total number of training steps to perform.",
     )
     parser.add_argument(
-        "--max_f_train_steps", 
-        type=int, 
+        "--max_f_train_steps",
+        type=int,
         default=10,
-        help="Total number of sub-steps to train surogate model."
+        help="Total number of sub-steps to train surogate model.",
     )
     parser.add_argument(
-        "--max_adv_train_steps", 
-        type=int, 
+        "--max_adv_train_steps",
+        type=int,
         default=10,
-        help="Total number of sub-steps to train adversarial noise."
+        help="Total number of sub-steps to train adversarial noise.",
     )
     parser.add_argument(
         "--checkpointing_iterations",
@@ -310,14 +304,14 @@ def parse_args(input_args=None):
         ),
     )
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", 
-        action="store_true", 
-        help="Whether or not to use xformers."
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Whether or not to use xformers.",
     )
     parser.add_argument(
         "--pgd_alpha",
         type=float,
-        default=1.0/255,
+        default=1.0 / 255,
         help="The step size for pgd.",
     )
     parser.add_argument(
@@ -544,8 +538,17 @@ def pgd_attack(
 
         # target-shift loss
         if target_tensor is not None:
-            xtm1_pred = torch.cat([noise_scheduler.step(model_pred[idx:idx+1], timesteps[idx:idx+1], noisy_latents[idx:idx+1]).prev_sample for idx in range(len(model_pred))])
-            xtm1_target = noise_scheduler.add_noise(target_tensor, noise, timesteps-1)
+            xtm1_pred = torch.cat(
+                [
+                    noise_scheduler.step(
+                        model_pred[idx : idx + 1],
+                        timesteps[idx : idx + 1],
+                        noisy_latents[idx : idx + 1],
+                    ).prev_sample
+                    for idx in range(len(model_pred))
+                ]
+            )
+            xtm1_target = noise_scheduler.add_noise(target_tensor, noise, timesteps - 1)
             loss = loss - F.mse_loss(xtm1_pred, xtm1_target)
 
         loss.backward()
@@ -657,7 +660,9 @@ def main(args):
 
     noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
 
-    vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision).cuda()
+    vae = AutoencoderKL.from_pretrained(
+        args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision
+    ).cuda()
 
     vae.requires_grad_(False)
 
@@ -685,17 +690,19 @@ def main(args):
             unet.enable_xformers_memory_efficient_attention()
         else:
             raise ValueError("xformers is not available. Make sure it is installed correctly")
-    
+
     target_latent_tensor = None
     if args.target_image_path is not None:
         target_image_path = Path(args.target_image_path)
         assert target_image_path.is_file(), f"Target image path {target_image_path} does not exist"
-        
+
         target_image = Image.open(target_image_path).convert("RGB").resize((args.resolution, args.resolution))
         target_image = np.array(target_image)[None].transpose(0, 3, 1, 2)
-        
-        target_image_tensor = (torch.from_numpy(target_image).to("cuda", dtype=torch.float32) / 127.5 - 1.0)
-        target_latent_tensor = vae.encode(target_image_tensor).latent_dist.sample().to(dtype=torch.bfloat16) * vae.config.scaling_factor
+
+        target_image_tensor = torch.from_numpy(target_image).to("cuda", dtype=torch.float32) / 127.5 - 1.0
+        target_latent_tensor = (
+            vae.encode(target_image_tensor).latent_dist.sample().to(dtype=torch.bfloat16) * vae.config.scaling_factor
+        )
         target_latent_tensor = target_latent_tensor.repeat(len(perturbed_data), 1, 1, 1).cuda()
 
     f = [unet, text_encoder]
@@ -732,7 +739,7 @@ def main(args):
             args.max_f_train_steps,
         )
 
-        if (i+1) % args.checkpointing_iterations == 0:
+        if (i + 1) % args.checkpointing_iterations == 0:
             save_folder = f"{args.output_dir}/noise-ckpt/{i+1}"
             os.makedirs(save_folder, exist_ok=True)
             noised_imgs = perturbed_data.detach()

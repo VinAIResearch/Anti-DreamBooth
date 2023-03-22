@@ -18,23 +18,22 @@ import itertools
 import logging
 import os
 from pathlib import Path
-import numpy as np
-
-import torch
-import torch.nn.functional as F
-import torch.utils.checkpoint
-from torch.utils.data import Dataset
 
 import datasets
 import diffusers
+import numpy as np
+import torch
+import torch.nn.functional as F
+import torch.utils.checkpoint
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel, StableDiffusionPipeline
+from diffusers import AutoencoderKL, DDPMScheduler, StableDiffusionPipeline, UNet2DConditionModel
 from diffusers.utils import check_min_version
 from diffusers.utils.import_utils import is_xformers_available
 from PIL import Image
+from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
@@ -162,12 +161,7 @@ def parse_args(input_args=None):
         action="store_true",
         help="Whether or not to use gradient checkpointing to save memory at the expense of slower backward pass.",
     )
-    parser.add_argument(
-        "--max_grad_norm", 
-        default=1.0, 
-        type=float, 
-        help="Max gradient norm."
-    )
+    parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument(
         "--logging_dir",
         type=str,
@@ -206,14 +200,14 @@ def parse_args(input_args=None):
         ),
     )
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", 
-        action="store_true", 
-        help="Whether or not to use xformers."
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Whether or not to use xformers.",
     )
     parser.add_argument(
         "--pgd_alpha",
         type=float,
-        default=1.0/255,
+        default=1.0 / 255,
         help="The step size for pgd.",
     )
     parser.add_argument(
@@ -351,14 +345,20 @@ class PromptDataset(Dataset):
 
 
 def infer(checkpoint_path, prompts=None, n_img=16, bs=8, n_steps=100, guidance_scale=7.5):
-    pipe = StableDiffusionPipeline.from_pretrained(checkpoint_path, torch_dtype=torch.float16, safety_checker=None).to("cuda")
+    pipe = StableDiffusionPipeline.from_pretrained(checkpoint_path, torch_dtype=torch.float16, safety_checker=None).to(
+        "cuda"
+    )
 
     for prompt in prompts:
         norm_prompt = prompt.lower().replace(",", "").replace(" ", "_")
         out_path = f"{checkpoint_path}/dreambooth/{norm_prompt}"
         os.makedirs(out_path, exist_ok=True)
         for i in range(n_img // bs):
-            images = pipe([prompt] * bs, num_inference_steps=n_steps, guidance_scale=guidance_scale).images
+            images = pipe(
+                [prompt] * bs,
+                num_inference_steps=n_steps,
+                guidance_scale=guidance_scale,
+            ).images
             for idx, image in enumerate(images):
                 image.save(f"{out_path}/{i}_{idx}.png")
     del pipe
@@ -423,7 +423,9 @@ def main(args):
     # Load scheduler and models
     noise_scheduler = DDPMScheduler.from_pretrained(args.pretrained_model_name_or_path, subfolder="scheduler")
     text_encoder = text_encoder_cls.from_pretrained(
-        args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
+        args.pretrained_model_name_or_path,
+        subfolder="text_encoder",
+        revision=args.revision,
     )
     vae = AutoencoderKL.from_pretrained(args.pretrained_model_name_or_path, subfolder="vae", revision=args.revision)
     unet = UNet2DConditionModel.from_pretrained(
@@ -481,7 +483,7 @@ def main(args):
     pertubed_images = [train_dataset.image_transforms(i) for i in pertubed_images]
     pertubed_images = torch.stack(pertubed_images).contiguous()
     pertubed_images.requires_grad_()
-    
+
     original_images = pertubed_images.clone().detach()
     original_images.requires_grad_(False)
 
@@ -492,7 +494,6 @@ def main(args):
         max_length=train_dataset.tokenizer.model_max_length,
         return_tensors="pt",
     ).input_ids.repeat(len(original_images), 1)
-
 
     # Prepare everything with our `accelerator`.
     unet, text_encoder, pertubed_images, original_images = accelerator.prepare(
@@ -527,16 +528,21 @@ def main(args):
     if args.target_image_path is not None:
         target_image_path = Path(args.target_image_path)
         assert target_image_path.is_file(), f"Target image path {target_image_path} does not exist"
-        
+
         target_image = Image.open(target_image_path).convert("RGB").resize((args.resolution, args.resolution))
         target_image = np.array(target_image)[None].transpose(0, 3, 1, 2)
-        
-        target_image_tensor = (torch.from_numpy(target_image).to(accelerator.device, dtype=torch.float32) / 127.5 - 1.0)
-        target_latent_tensor = vae.encode(target_image_tensor).latent_dist.sample().to(dtype=torch.bfloat16) * vae.config.scaling_factor
+
+        target_image_tensor = torch.from_numpy(target_image).to(accelerator.device, dtype=torch.float32) / 127.5 - 1.0
+        target_latent_tensor = (
+            vae.encode(target_image_tensor).latent_dist.sample().to(dtype=torch.bfloat16) * vae.config.scaling_factor
+        )
         target_latent_tensor = target_latent_tensor.repeat(len(pertubed_images), 1, 1, 1).cuda()
 
     # Only show the progress bar once on each machine.
-    progress_bar = tqdm(range(global_step, args.max_train_steps), disable=not accelerator.is_local_main_process)
+    progress_bar = tqdm(
+        range(global_step, args.max_train_steps),
+        disable=not accelerator.is_local_main_process,
+    )
     progress_bar.set_description("Steps")
 
     unet.train()
@@ -548,13 +554,18 @@ def main(args):
             # for PGD, we ignore all the batch["pixel_values"] etc...
             pertubed_images.requires_grad = True
             latents = vae.encode(pertubed_images.to(accelerator.device).to(dtype=weight_dtype)).latent_dist.sample()
-            latents = latents * vae.config.scaling_factor # N=4, C, 64, 64
+            latents = latents * vae.config.scaling_factor  # N=4, C, 64, 64
 
             # Sample noise that we'll add to the latents
             noise = torch.randn_like(latents)
             bsz = latents.shape[0]
             # Sample a random timestep for each image
-            timesteps = torch.randint(0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
+            timesteps = torch.randint(
+                0,
+                noise_scheduler.config.num_train_timesteps,
+                (bsz,),
+                device=latents.device,
+            )
             timesteps = timesteps.long()
 
             # Add noise to the latents according to the noise magnitude at each timestep
@@ -578,13 +589,22 @@ def main(args):
             unet.zero_grad()
             text_encoder.zero_grad()
             loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
-            
+
             # target-shift loss
             if args.target_image_path is not None:
-                xtm1_pred = torch.cat([noise_scheduler.step(model_pred[idx:idx+1], timesteps[idx:idx+1], noisy_latents[idx:idx+1]).prev_sample for idx in range(len(model_pred))])
-                xtm1_target = noise_scheduler.add_noise(target_latent_tensor, noise, timesteps-1)
+                xtm1_pred = torch.cat(
+                    [
+                        noise_scheduler.step(
+                            model_pred[idx : idx + 1],
+                            timesteps[idx : idx + 1],
+                            noisy_latents[idx : idx + 1],
+                        ).prev_sample
+                        for idx in range(len(model_pred))
+                    ]
+                )
+                xtm1_target = noise_scheduler.add_noise(target_latent_tensor, noise, timesteps - 1)
                 loss = loss - F.mse_loss(xtm1_pred, xtm1_target)
-            
+
             accelerator.backward(loss)
 
             if accelerator.sync_gradients:
@@ -598,7 +618,7 @@ def main(args):
             # PGD: now we update the images
             alpha = args.pgd_alpha
             eps = args.pgd_eps
-            
+
             adv_images = pertubed_images + alpha * pertubed_images.grad.sign()
             eta = torch.clamp(adv_images - original_images, min=-eps, max=+eps)
             pertubed_images = torch.clamp(original_images + eta, min=-1, max=+1).detach_()
@@ -613,10 +633,14 @@ def main(args):
                     save_folder = f"{args.output_dir}/noise-ckpt/{global_step}"
                     os.makedirs(save_folder, exist_ok=True)
                     noised_imgs = pertubed_images.detach()
-                    img_names = [str(instance_path).split("/")[-1] for instance_path in train_dataset.instance_images_path]
+                    img_names = [
+                        str(instance_path).split("/")[-1] for instance_path in train_dataset.instance_images_path
+                    ]
                     for img_pixel, img_name in zip(noised_imgs, img_names):
                         save_path = os.path.join(save_folder, f"{global_step}_noise_{img_name}")
-                        Image.fromarray((img_pixel * 127.5 + 128).clamp(0, 255).to(torch.uint8).permute(1, 2, 0).cpu().numpy()).save(save_path)
+                        Image.fromarray(
+                            (img_pixel * 127.5 + 128).clamp(0, 255).to(torch.uint8).permute(1, 2, 0).cpu().numpy()
+                        ).save(save_path)
                     print(f"Saved noise at step {global_step} to {save_folder}")
 
         logs = {"loss": loss.detach().item()}

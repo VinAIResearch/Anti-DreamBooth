@@ -1,4 +1,5 @@
 import argparse
+import copy
 import hashlib
 import itertools
 import logging
@@ -6,28 +7,21 @@ import os
 import warnings
 from pathlib import Path
 
+import datasets
+import diffusers
 import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
-from torch.utils.data import Dataset
-
-import datasets
-import diffusers
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    DiffusionPipeline,
-    UNet2DConditionModel,
-)
+from diffusers import AutoencoderKL, DDPMScheduler, DiffusionPipeline, UNet2DConditionModel
 from PIL import Image
+from torch.utils.data import Dataset
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
-import copy
 
 
 logger = get_logger(__name__)
@@ -67,10 +61,8 @@ class DreamBoothDatasetFromTensor(Dataset):
 
         self.image_transforms = transforms.Compose(
             [
-                transforms.Resize(
-                    size, interpolation=transforms.InterpolationMode.BILINEAR),
-                transforms.CenterCrop(
-                    size) if center_crop else transforms.RandomCrop(size),
+                transforms.Resize(size, interpolation=transforms.InterpolationMode.BILINEAR),
+                transforms.CenterCrop(size) if center_crop else transforms.RandomCrop(size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.5], [0.5]),
             ]
@@ -81,8 +73,7 @@ class DreamBoothDatasetFromTensor(Dataset):
 
     def __getitem__(self, index):
         example = {}
-        instance_image = self.instance_images_tensor[index %
-                                                     self.num_instance_images]
+        instance_image = self.instance_images_tensor[index % self.num_instance_images]
         example["instance_images"] = instance_image
         example["instance_prompt_ids"] = self.tokenizer(
             self.instance_prompt,
@@ -93,8 +84,7 @@ class DreamBoothDatasetFromTensor(Dataset):
         ).input_ids
 
         if self.class_data_root:
-            class_image = Image.open(
-                self.class_images_path[index % self.num_class_images])
+            class_image = Image.open(self.class_images_path[index % self.num_class_images])
             if not class_image.mode == "RGB":
                 class_image = class_image.convert("RGB")
             example["class_images"] = self.image_transforms(class_image)
@@ -122,9 +112,7 @@ def import_model_class_from_model_name_or_path(pretrained_model_name_or_path: st
 
         return CLIPTextModel
     elif model_class == "RobertaSeriesModelWithTransformation":
-        from diffusers.pipelines.alt_diffusion.modeling_roberta_series import (
-            RobertaSeriesModelWithTransformation,
-        )
+        from diffusers.pipelines.alt_diffusion.modeling_roberta_series import RobertaSeriesModelWithTransformation
 
         return RobertaSeriesModelWithTransformation
     else:
@@ -134,8 +122,7 @@ def import_model_class_from_model_name_or_path(pretrained_model_name_or_path: st
 def load_model(args, model_path):
     print(model_path)
     # import correct text encoder class
-    text_encoder_cls = import_model_class_from_model_name_or_path(
-        model_path, args.revision)
+    text_encoder_cls = import_model_class_from_model_name_or_path(model_path, args.revision)
 
     # Load scheduler and models
     text_encoder = text_encoder_cls.from_pretrained(
@@ -143,9 +130,7 @@ def load_model(args, model_path):
         subfolder="text_encoder",
         revision=args.revision,
     )
-    unet = UNet2DConditionModel.from_pretrained(
-        model_path, subfolder="unet", revision=args.revision
-    )
+    unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", revision=args.revision)
 
     # num_iters = 100
     # num_train_steps = 20
@@ -158,11 +143,9 @@ def load_model(args, model_path):
         use_fast=False,
     )
 
-    noise_scheduler = DDPMScheduler.from_pretrained(
-        model_path, subfolder="scheduler")
+    noise_scheduler = DDPMScheduler.from_pretrained(model_path, subfolder="scheduler")
 
-    vae = AutoencoderKL.from_pretrained(
-        model_path, subfolder="vae", revision=args.revision)
+    vae = AutoencoderKL.from_pretrained(model_path, subfolder="vae", revision=args.revision)
 
     vae.requires_grad_(False)
 
@@ -181,8 +164,7 @@ def load_model(args, model_path):
 
 
 def parse_args(input_args=None):
-    parser = argparse.ArgumentParser(
-        description="Simple example of a training script.")
+    parser = argparse.ArgumentParser(description="Simple example of a training script.")
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
@@ -267,8 +249,7 @@ def parse_args(input_args=None):
         default="text-inversion-model",
         help="The output directory where the model predictions and checkpoints will be written.",
     )
-    parser.add_argument("--seed", type=int, default=None,
-                        help="A seed for reproducible training.")
+    parser.add_argument("--seed", type=int, default=None, help="A seed for reproducible training.")
     parser.add_argument(
         "--resolution",
         type=int,
@@ -308,18 +289,18 @@ def parse_args(input_args=None):
         "--max_f_train_steps",
         type=int,
         default=10,
-        help="Total number of sub-steps to train surogate model."
+        help="Total number of sub-steps to train surogate model.",
     )
     parser.add_argument(
         "--max_adv_train_steps",
         type=int,
         default=10,
-        help="Total number of sub-steps to train adversarial noise."
+        help="Total number of sub-steps to train adversarial noise.",
     )
     parser.add_argument(
         "--pgd_alpha",
         type=float,
-        default=1.0/255,
+        default=1.0 / 255,
         help="The step size for pgd.",
     )
     parser.add_argument(
@@ -378,9 +359,9 @@ def parse_args(input_args=None):
         ),
     )
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", 
-        action="store_true", 
-        help="Whether or not to use xformers."
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Whether or not to use xformers.",
     )
     if input_args is not None:
         args = parser.parse_args(input_args)
@@ -422,17 +403,14 @@ class PromptDataset(Dataset):
 def load_data(data_dir, size=512, center_crop=True) -> torch.Tensor:
     image_transforms = transforms.Compose(
         [
-            transforms.Resize(
-                size, interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(
-                size) if center_crop else transforms.RandomCrop(size),
+            transforms.Resize(size, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.CenterCrop(size) if center_crop else transforms.RandomCrop(size),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5]),
         ]
     )
 
-    images = [image_transforms(Image.open(i).convert("RGB"))
-              for i in list(Path(data_dir).iterdir())]
+    images = [image_transforms(Image.open(i).convert("RGB")) for i in list(Path(data_dir).iterdir())]
     images = torch.stack(images)
     return images
 
@@ -575,16 +553,14 @@ def pgd_attack(
 
     for step in range(num_steps):
         perturbed_images.requires_grad = True
-        latents = vae.encode(perturbed_images.to(
-            device, dtype=weight_dtype)).latent_dist.sample()
+        latents = vae.encode(perturbed_images.to(device, dtype=weight_dtype)).latent_dist.sample()
         latents = latents * vae.config.scaling_factor  # N=4, C, 64, 64
 
         # Sample noise that we'll add to the latents
         noise = torch.randn_like(latents)
         bsz = latents.shape[0]
         # Sample a random timestep for each image
-        timesteps = torch.randint(
-            0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
+        timesteps = torch.randint(0, noise_scheduler.config.num_train_timesteps, (bsz,), device=latents.device)
         timesteps = timesteps.long()
         # Add noise to the latents according to the noise magnitude at each timestep
         # (this is the forward diffusion process)
@@ -594,8 +570,7 @@ def pgd_attack(
         encoder_hidden_states = text_encoder(input_ids.to(device))[0]
 
         # Predict the noise residual
-        model_pred = unet(noisy_latents, timesteps,
-                          encoder_hidden_states).sample
+        model_pred = unet(noisy_latents, timesteps, encoder_hidden_states).sample
 
         # Get the target for loss depending on the prediction type
         if noise_scheduler.config.prediction_type == "epsilon":
@@ -603,8 +578,7 @@ def pgd_attack(
         elif noise_scheduler.config.prediction_type == "v_prediction":
             target = noise_scheduler.get_velocity(latents, noise, timesteps)
         else:
-            raise ValueError(
-                f"Unknown prediction type {noise_scheduler.config.prediction_type}")
+            raise ValueError(f"Unknown prediction type {noise_scheduler.config.prediction_type}")
 
         # no prior preservation
         unet.zero_grad()
@@ -617,8 +591,7 @@ def pgd_attack(
 
         adv_images = perturbed_images + alpha * perturbed_images.grad.sign()
         eta = torch.clamp(adv_images - original_images, min=-eps, max=+eps)
-        perturbed_images = torch.clamp(
-            original_images + eta, min=-1, max=+1).detach_()
+        perturbed_images = torch.clamp(original_images + eta, min=-1, max=+1).detach_()
         print(f"PGD loss - step {step}, loss: {loss.detach().item()}")
     return perturbed_images
 
@@ -649,7 +622,7 @@ def main(args):
 
     if args.seed is not None:
         set_seed(args.seed)
-    
+
     # Generate class images if prior preservation is enabled.
     if args.with_prior_preservation:
         class_images_dir = Path(args.class_data_dir)
@@ -717,17 +690,18 @@ def main(args):
     model_paths = list(args.pretrained_model_name_or_path.split(","))
     num_models = len(model_paths)
 
-    MODEL_NAMES = ["text_encoder", "unet",
-                   "tokenizer", "noise_scheduler", "vae"]
+    # MODEL_NAMES = ["text_encoder", "unet", "tokenizer", "noise_scheduler", "vae"]
     MODEL_BANKS = [load_model(args, path) for path in model_paths]
     MODEL_STATEDICTS = [
         {
             "text_encoder": MODEL_BANKS[i][0].state_dict(),
             "unet": MODEL_BANKS[i][1].state_dict(),
-        } for i in range(num_models)]
+        }
+        for i in range(num_models)
+    ]
 
     for i in range(args.max_train_steps):
-        en_data = 0.
+        en_data = 0.0
         for j, model_path in enumerate(model_paths):
             text_encoder, unet, tokenizer, noise_scheduler, vae = MODEL_BANKS[j]
             unet.load_state_dict(MODEL_STATEDICTS[j]["unet"])
@@ -781,7 +755,7 @@ def main(args):
         # update
         perturbed_data = en_data
 
-        if (i+1) % args.checkpointing_iterations == 0:
+        if (i + 1) % args.checkpointing_iterations == 0:
             save_folder = f"{args.output_dir}/noise-ckpt/{i+1}"
             os.makedirs(save_folder, exist_ok=True)
             noised_imgs = perturbed_data.detach()
@@ -790,11 +764,9 @@ def main(args):
                 for instance_path in list(Path(args.instance_data_dir_for_adversarial).iterdir())
             ]
             for img_pixel, img_name in zip(noised_imgs, img_names):
-                save_path = os.path.join(
-                    save_folder, f"{i+1}_noise_{img_name}")
+                save_path = os.path.join(save_folder, f"{i+1}_noise_{img_name}")
                 Image.fromarray(
-                    (img_pixel * 127.5 + 128).clamp(0,
-                                                    255).to(torch.uint8).permute(1, 2, 0).cpu().numpy()
+                    (img_pixel * 127.5 + 128).clamp(0, 255).to(torch.uint8).permute(1, 2, 0).cpu().numpy()
                 ).save(save_path)
             print(f"Saved noise at step {i+1} to {save_folder}")
 

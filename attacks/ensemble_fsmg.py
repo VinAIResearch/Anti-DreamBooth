@@ -14,31 +14,25 @@
 # See the License for the specific language governing permissions and
 
 import argparse
-import itertools
 import logging
 import os
 from pathlib import Path
-import numpy as np
-
-import torch
-import torch.nn.functional as F
-import torch.utils.checkpoint
-from torch.utils.data import Dataset
 
 import datasets
 import diffusers
+import torch
+import torch.nn.functional as F
+import torch.utils.checkpoint
 import transformers
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel, StableDiffusionPipeline
+from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
 from diffusers.utils import check_min_version
-from diffusers.utils.import_utils import is_xformers_available
 from PIL import Image
+from torch.utils.data import Dataset
 from torchvision import transforms
-from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
-import copy
 
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.
@@ -143,10 +137,10 @@ def parse_args(input_args=None):
         help="Total number of training steps to perform.",
     )
     parser.add_argument(
-        "--max_adv_train_steps", 
-        type=int, 
+        "--max_adv_train_steps",
+        type=int,
         default=10,
-        help="Total number of sub-steps to train adversarial noise."
+        help="Total number of sub-steps to train adversarial noise.",
     )
     parser.add_argument(
         "--checkpointing_steps",
@@ -169,12 +163,7 @@ def parse_args(input_args=None):
         action="store_true",
         help="Whether or not to use gradient checkpointing to save memory at the expense of slower backward pass.",
     )
-    parser.add_argument(
-        "--max_grad_norm", 
-        default=1.0, 
-        type=float, 
-        help="Max gradient norm."
-    )
+    parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument(
         "--logging_dir",
         type=str,
@@ -213,14 +202,14 @@ def parse_args(input_args=None):
         ),
     )
     parser.add_argument(
-        "--enable_xformers_memory_efficient_attention", 
-        action="store_true", 
-        help="Whether or not to use xformers."
+        "--enable_xformers_memory_efficient_attention",
+        action="store_true",
+        help="Whether or not to use xformers.",
     )
     parser.add_argument(
         "--pgd_alpha",
         type=float,
-        default=1.0/255,
+        default=1.0 / 255,
         help="The step size for pgd.",
     )
     parser.add_argument(
@@ -353,9 +342,7 @@ def load_model(args, model_path):
         subfolder="text_encoder",
         revision=args.revision,
     )
-    unet = UNet2DConditionModel.from_pretrained(
-        model_path, subfolder="unet", revision=args.revision
-    )
+    unet = UNet2DConditionModel.from_pretrained(model_path, subfolder="unet", revision=args.revision)
 
     # num_iters = 100
     # num_train_steps = 20
@@ -376,7 +363,7 @@ def load_model(args, model_path):
 
     if not args.train_text_encoder:
         text_encoder.requires_grad_(False)
-        
+
     if args.enable_xformers_memory_efficient_attention:
         print("You selected to used efficient xformers")
         print("Make sure to install the following packages before continue")
@@ -384,9 +371,9 @@ def load_model(args, model_path):
         print("pip install pip install xformers==0.0.17.dev461")
 
         unet.enable_xformers_memory_efficient_attention()
-    
+
     return text_encoder, unet, tokenizer, noise_scheduler, vae
-    
+
 
 def pgd_attack(
     args,
@@ -502,11 +489,6 @@ def main(args):
     if args.allow_tf32:
         torch.backends.cuda.matmul.allow_tf32 = True
 
-    clean_data = load_data(
-        args.instance_data_dir,
-        size=args.resolution,
-        center_crop=args.center_crop,
-    )
     perturbed_data = load_data(
         args.instance_data_dir,
         size=args.resolution,
@@ -514,42 +496,43 @@ def main(args):
     )
     original_data = perturbed_data.clone()
     original_data.requires_grad_(False)
-    
+
     model_paths = list(args.pretrained_model_name_or_path.split(","))
     num_models = len(model_paths)
 
     for i in range(args.max_train_steps):
-        en_data = 0.
+        en_data = 0.0
         for j, model_path in enumerate(model_paths):
             text_encoder, unet, tokenizer, noise_scheduler, vae = load_model(args, model_path)
             f = (unet, text_encoder)
 
-            en_data += pgd_attack(
-                args,
-                f,
-                tokenizer,
-                noise_scheduler,
-                vae,
-                perturbed_data,
-                original_data,
-                args.max_adv_train_steps,
-            ) / num_models
-            
-        
+            en_data += (
+                pgd_attack(
+                    args,
+                    f,
+                    tokenizer,
+                    noise_scheduler,
+                    vae,
+                    perturbed_data,
+                    original_data,
+                    args.max_adv_train_steps,
+                )
+                / num_models
+            )
+
             del text_encoder, unet, tokenizer, noise_scheduler, vae
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-         
+
         # update
         perturbed_data = en_data
 
-        if (i+1) % args.checkpointing_steps == 0:
+        if (i + 1) % args.checkpointing_steps == 0:
             save_folder = f"{args.output_dir}/noise-ckpt/{i+1}"
             os.makedirs(save_folder, exist_ok=True)
             noised_imgs = perturbed_data.detach()
             img_names = [
-                str(instance_path).split("/")[-1]
-                for instance_path in list(Path(args.instance_data_dir).iterdir())
+                str(instance_path).split("/")[-1] for instance_path in list(Path(args.instance_data_dir).iterdir())
             ]
             for img_pixel, img_name in zip(noised_imgs, img_names):
                 save_path = os.path.join(save_folder, f"{i+1}_noise_{img_name}")

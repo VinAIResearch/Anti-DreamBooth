@@ -1,7 +1,9 @@
 import argparse
-from diffusers import StableDiffusionPipeline
 import os
+
 import torch
+from diffusers import StableDiffusionPipeline
+
 
 parser = argparse.ArgumentParser(description="Inference")
 parser.add_argument(
@@ -46,9 +48,7 @@ if __name__ == "__main__":
         out_path = f"{args.output_dir}/{norm_prompt}"
         os.makedirs(out_path, exist_ok=True)
         for i in range(2):
-            images = pipe(
-                [prompt] * 8, num_inference_steps=100, guidance_scale=7.5
-            ).images
+            images = pipe([prompt] * 8, num_inference_steps=100, guidance_scale=7.5).images
             for idx, image in enumerate(images):
                 image.save(f"{out_path}/{i}_{idx}.png")
     del pipe
