@@ -29,7 +29,7 @@ TODO:
 - [x] Validate E-ASPL
 - [x] Validate ASPL
 - [x] Validate T-ASPL
-- [] Validate FSMG
+- [x] Validate FSMG
 - [] Validate E-FSMG
 - [] Validate T-FSMG
 

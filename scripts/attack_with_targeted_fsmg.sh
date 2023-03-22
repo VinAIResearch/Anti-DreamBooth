@@ -1,9 +1,11 @@
-export EXPERIMENT_NAME="FSMG"
-export MODEL_PATH="CompVis/stable-diffusion-2-1-base"
+export EXPERIMENT_NAME="T-FSMG"
+export MODEL_PATH="./stable-diffusion/stable-diffusion-2-1-base"
 export CLASS_DIR="data/class-person"
 export CLEAN_TRAIN_DIR="data/n000050/set_A"
 export REF_MODEL_PATH="outputs/$EXPERIMENT_NAME/n000050_REFERENCE"
 
+
+# ------------------------- Train DreamBooth model on set A -------------------------
 accelerate launch train_dreambooth.py \
   --pretrained_model_name_or_path=$MODEL_PATH  \
   --enable_xformers_memory_efficient_attention \
@@ -30,6 +32,8 @@ accelerate launch train_dreambooth.py \
   --prior_generation_precision=bf16 \
   --sample_batch_size=16
 
+
+# ------------------------- Train T-FSMG on set B -------------------------
 export CLEAN_ADV_DIR="data/n000050/set_B"
 export OUTPUT_DIR="outputs/$EXPERIMENT_NAME/n000050_ADVERSARIAL"
 
@@ -49,9 +53,11 @@ accelerate launch attacks/fsmg.py \
   --checkpointing_steps=20 \
   --center_crop \
   --pgd_alpha=5e-3 \
-  --pgd_eps=5e-2 \ 
+  --pgd_eps=5e-2 \
   --target_image_path="data/target.jpg"
 
+
+# ------------------------- Train DreamBooth on perturbed examples -------------------------
 export INSTANCE_DIR="$OUTPUT_DIR/noise-ckpt/100"
 export DREAMBOOTH_OUTPUT_DIR="outputs/$EXPERIMENT_NAME/n000050_DREAMBOOTH"
 
