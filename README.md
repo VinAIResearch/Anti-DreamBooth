@@ -60,7 +60,7 @@ Pretrained checkpoints of SD versions can be downloaded from provided links in t
   </tr>
 </table>
 
-Please put them in `./stable-diffusion/`. Note: SD v2.1 is the default version of our experiments. 
+Please put them in `./stable-diffusion/`. Note: SD v2.1 is the default version in all of our experiments. 
 
 ## Dataset preparation
 We have experimented on these two datasets:
