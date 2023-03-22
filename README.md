@@ -78,7 +78,7 @@ To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can 
 bash scripts/attack_with_aspl.sh
 ```
 
-To defense Stable Diffusion version 2.1 (default) with targeted ASPL, you can run
+To defense Stable Diffusion version 2.1 with targeted ASPL, you can run
 ```bash
 bash scripts/attack_with_targeted_aspl.sh
 ```
