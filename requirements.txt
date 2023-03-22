@@ -1,11 +1,12 @@
-diffusers==0.13.0.dev0
-triton==2.0.0.dev20221031
-xformers==0.0.17.dev461
-transformers
-accelerate
+diffusers==0.13.1
+triton==2.0.0
+xformers==0.0.16
+transformers==4.26.0
+accelerate==0.16.0
 ftfy
 tensorboard
 Jinja2
 tqdm
-torchvision
+torch==1.13.1
+torchvision==0.14.1
 --extra-index-url https://download.pytorch.org/whl/cu113
