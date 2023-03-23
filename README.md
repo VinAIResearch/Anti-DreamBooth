@@ -85,6 +85,8 @@ In this research, we select 50 identities from each dataset and carefully choose
 For convenient testing, we have provided a split set of one subject in VGGFace2 at `./data/n000050/`.
 
 ## How to run
+> GPU allocation: All experiments are performed on a single NVIDIA 40GB A100 GPU.
+
 To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can run
 ```bash
 bash scripts/attack_with_aspl.sh
