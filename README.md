@@ -22,7 +22,7 @@ Details of algorithms and experimental results can be found in [our following pa
   author={Thanh Van Le, Hao Phung, Thuan Hoang Nguyen, Quan Dao, Ngoc Tran and Anh Tran},
   journal={arxiv preprint},
   volume={arxiv:<id number>},
-  year= {2023}
+  year={2023}
 }
 ```
 **Please CITE** our paper whenever this repository is used to help produce published results or incorporated into other software.
