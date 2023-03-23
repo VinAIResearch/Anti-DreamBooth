@@ -72,7 +72,9 @@ Pretrained checkpoints of different Stable Diffusion versions can be downloaded 
   </tr>
 </table>
 
-Please put them in `./stable-diffusion/`. Note: Stable Diffusion version 2.1 is the default version in all of our experiments. 
+Please put them in `./stable-diffusion/`. Note: Stable Diffusion version 2.1 is the default version in all of our experiments.
+
+> GPU allocation: All experiments are performed on a single NVIDIA 40GB A100 GPU.
 
 ## Dataset preparation
 We have experimented on these two datasets:
@@ -85,7 +87,7 @@ In this research, we select 50 identities from each dataset and carefully choose
 For convenient testing, we have provided a split set of one subject in VGGFace2 at `./data/n000050/`.
 
 ## How to run
-> GPU allocation: All experiments are performed on a single NVIDIA 40GB A100 GPU.
+
 
 To defense Stable Diffusion version 2.1 (default) with untargeted ASPL, you can run
 ```bash
