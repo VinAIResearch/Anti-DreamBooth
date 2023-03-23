@@ -8,6 +8,18 @@
 <a href=""><img src="https://img.shields.io/badge/ARXIV-Article--ID-red??style=flat"></a>
 <a href=""><img src="https://img.shields.io/badge/Website-Project%20Page-blue?style=flat"></a>
 <div align="center">
+  <a href="https://github.com/Luvata" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
+  <a href="https://hao-pt.github.io/" target="_blank">Hao&nbsp;Phung</a> &emsp;
+  <a href="https://github.com/thuanz123" target="_blank">Thuan&nbsp;Hoang&nbsp;Nguyen</a> &emsp;
+  <a href="https://scholar.google.com/citations?user=g0RS3_kAAAAJ&hl=en&oi=ao" target="_blank">Quan&nbsp;Dao</a> &emsp;
+  <a href="https://ngoctnq.github.io/" target="_blank">Ngoc&nbsp;Tran</a> &emsp;
+  <a href="https://sites.google.com/site/anhttranusc/" target="_blank">Anh&nbsp;Tran</a>
+  <br> <br>
+  <a href="https://www.vinai.io/">VinAI Research</a>  
+</div>
+<br>
+
+<div align="center">
     <img width="1000" alt="teaser" src="assets/Teaser.png"/>
 </div>
 
