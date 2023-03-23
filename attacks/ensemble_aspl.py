@@ -280,6 +280,12 @@ def parse_args(input_args=None):
         help="Batch size (per device) for the training dataloader.",
     )
     parser.add_argument(
+        "--sample_batch_size",
+        type=int,
+        default=8,
+        help="Batch size (per device) for sampling images.",
+    )
+    parser.add_argument(
         "--max_train_steps",
         type=int,
         default=20,
@@ -632,11 +638,11 @@ def main(args):
 
         if cur_class_images < args.num_class_images:
             torch_dtype = torch.float16 if accelerator.device.type == "cuda" else torch.float32
-            if args.prior_generation_precision == "fp32":
+            if args.mixed_precision == "fp32":
                 torch_dtype = torch.float32
-            elif args.prior_generation_precision == "fp16":
+            elif args.mixed_precision == "fp16":
                 torch_dtype = torch.float16
-            elif args.prior_generation_precision == "bf16":
+            elif args.mixed_precision == "bf16":
                 torch_dtype = torch.bfloat16
             pipeline = DiffusionPipeline.from_pretrained(
                 args.pretrained_model_name_or_path,
