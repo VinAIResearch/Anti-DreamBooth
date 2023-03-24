@@ -6,7 +6,7 @@
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
 <a href=""><img src="https://img.shields.io/badge/ARXIV-Article--ID-red??style=flat"></a>
-<a href=""><img src="https://img.shields.io/badge/Website-Project%20Page-blue?style=flat"></a>
+<a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-Project%20Page-blue?style=flat"></a>
 <div align="center">
   <a href="https://github.com/Luvata" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
   <a href="https://hao-pt.github.io/" target="_blank">Hao&nbsp;Phung</a> &emsp;
