@@ -5,8 +5,9 @@
 4. [Contacts](#Contacts)
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
-<a href=""><img src="https://img.shields.io/badge/ARXIV-Article--ID-red??style=flat"></a>
-<a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-Project%20Page-blue?style=flat"></a>
+<a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-anti--dreambooth.github.io-blue?style=for-the-badge"></a>
+<a href=""><img src="https://img.shields.io/badge/arxiv-2303.14157-red?style=for-the-badge"></a>
+
 <div align="center">
   <a href="https://github.com/Luvata" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
   <a href="https://hao-pt.github.io/" target="_blank">Hao&nbsp;Phung</a> &emsp;
@@ -15,7 +16,9 @@
   <a href="https://ngoctnq.github.io/" target="_blank">Ngoc&nbsp;Tran</a> &emsp;
   <a href="https://sites.google.com/site/anhttranusc/" target="_blank">Anh&nbsp;Tran</a>
   <br> <br>
-  <a href="https://www.vinai.io/">VinAI Research</a>  
+  
+  
+  <a href="https://www.vinai.io/">VinAI Research</a>
 </div>
 <br>
 
@@ -129,4 +132,4 @@ python infer.py --model_path <path to DREAMBOOTH model>/checkpoint-1000 --output
 ```
 
 ## Contacts
-If you have any problems, please open an issue in this repository.
+If you have any problems, please open an issue in this repository or send an email to [imthanhlv@gmail.com](mailto:imthanhlv@gmail.com)
