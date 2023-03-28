@@ -29,13 +29,13 @@
 
 **TLDR**: A security booth safeguards your privacy against malicious threats by preventing DreamBooth from synthesizing photo-realistic images of the individual target.
 
-Details of algorithms and experimental results can be found in [our following paper]():
+Details of algorithms and experimental results can be found in [our following paper](https://arxiv.org/abs/2303.15433):
 ```bibtex
 @article{le_etal2023antidreambooth,
   title={Anti-DreamBooth: Protecting users from personalized text-to-image synthesis},
   author={Thanh Van Le, Hao Phung, Thuan Hoang Nguyen, Quan Dao, Ngoc Tran and Anh Tran},
   journal={arxiv preprint},
-  volume={arxiv:<id number>},
+  volume={arxiv:2303.15433},
   year={2023}
 }
 ```
