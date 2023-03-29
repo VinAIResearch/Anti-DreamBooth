@@ -2,6 +2,7 @@ diffusers==0.13.1
 triton==2.0.0
 xformers==0.0.16
 transformers==4.26.0
+datasets==2.10.1
 accelerate==0.16.0
 ftfy
 tensorboard
