@@ -123,6 +123,11 @@ The same running procedure is applied for other supported algorithms:
   </tr>
 </table>
 
+If you want to train a DreamBooth model from your own data, whether it is clean or perturbed, you may run the following script:
+```
+bash scripts/train_dreambooth_alone.sh
+```
+
 Inference: generates examples with multiple-prompts
 ```
 python infer.py --model_path <path to DREAMBOOTH model>/checkpoint-1000 --output_dir ./test-infer/
