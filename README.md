@@ -54,7 +54,7 @@ conda activate anti-dreambooth
 pip install -r requirements.txt  
 ```
 
-Pretrained checkpoints of different Stable Diffusion versions can be downloaded from provided links in the table below:
+Pretrained checkpoints of different Stable Diffusion versions can be **downloaded** from provided links in the table below:
 <table style="width:100%">
   <tr>
     <th>Version</th>
