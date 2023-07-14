@@ -4,7 +4,7 @@
 3. [How to run](#How-to-run)
 4. [Contacts](#Contacts)
 
-# Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis"
+# Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis" (ICCV'23)
 <a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-anti--dreambooth.github.io-blue?style=for-the-badge"></a>
 <a href="https://arxiv.org/abs/2303.15433"><img src="https://img.shields.io/badge/arxiv-2303.15433-red?style=for-the-badge"></a>
 <div align="center">
@@ -31,11 +31,10 @@
 
 Details of algorithms and experimental results can be found in [our following paper](https://arxiv.org/abs/2303.15433):
 ```bibtex
-@article{le_etal2023antidreambooth,
+@InProceedings{le_etal2023antidreambooth,
   title={Anti-DreamBooth: Protecting users from personalized text-to-image synthesis},
   author={Thanh Van Le, Hao Phung, Thuan Hoang Nguyen, Quan Dao, Ngoc Tran and Anh Tran},
-  journal={arxiv preprint},
-  volume={arxiv:2303.15433},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
   year={2023}
 }
 ```
