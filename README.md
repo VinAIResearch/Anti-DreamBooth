@@ -1,8 +1,8 @@
 ##### Table of contents
-1. [Environment setup](#Environment-setup)
-2. [Dataset preparation](#Dataset-preparation)
-3. [How to run](#How-to-run)
-4. [Contacts](#Contacts)
+1. [Environment setup](#environment-setup)
+2. [Dataset preparation](#dataset-preparation)
+3. [How to run](#how-to-run)
+4. [Contacts](#contacts)
 
 # Official PyTorch implementation of "Anti-DreamBooth: Protecting users from personalized text-to-image synthesis" (ICCV'23)
 <a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-anti--dreambooth.github.io-blue?style=for-the-badge"></a>
