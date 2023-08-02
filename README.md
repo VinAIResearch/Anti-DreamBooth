@@ -40,6 +40,8 @@ Details of algorithms and experimental results can be found in [our following pa
 ```
 **Please CITE** our paper whenever this repository is used to help produce published results or incorporated into other software.
 
+**News**
+- Provide download links for datasets in [Dataset preparation](#dataset-preparation)
 
 ## Environment setup
 
