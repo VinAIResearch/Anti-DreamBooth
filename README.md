@@ -11,7 +11,7 @@
   <a href="https://github.com/Luvata" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
   <a href="https://hao-pt.github.io/" target="_blank">Hao&nbsp;Phung</a> &emsp;
   <a href="https://thuanz123.github.io/" target="_blank">Thuan&nbsp;Hoang&nbsp;Nguyen</a> &emsp;
-  <a href="https://scholar.google.com/citations?user=g0RS3_kAAAAJ&hl=en&oi=ao" target="_blank">Quan&nbsp;Dao</a> &emsp;
+  <a href="https://quandao10.github.io/" target="_blank">Quan&nbsp;Dao</a> &emsp;
   <a href="https://ngoctnq.github.io/" target="_blank">Ngoc&nbsp;Tran</a> &emsp;
   <a href="https://sites.google.com/site/anhttranusc/" target="_blank">Anh&nbsp;Tran</a>
   <br> <br>
