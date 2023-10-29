@@ -1,5 +1,0 @@
-Collecting absl-py
-  Downloading absl_py-1.4.0-py3-none-any.whl (126 kB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 126.5/126.5 kB 927.7 kB/s eta 0:00:00
-Installing collected packages: absl-py
-Successfully installed absl-py-1.4.0
