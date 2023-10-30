@@ -21,7 +21,6 @@ result = {
 
 for idx in tqdm(os.listdir(data_path)):
     idx_data_dir = os.path.join(data_path, idx, "set_A"), os.path.join(data_path, idx, "set_B")
-    avg_embedding = None # TODO: QuanDM
     mid_dir = "{}_DREAMBOOTH/checkpoint-1000/dreambooth".format(idx)
     for prompt in prompts:
         idx_fake_dir = os.path.join(fake_path, mid_dir, prompt)
