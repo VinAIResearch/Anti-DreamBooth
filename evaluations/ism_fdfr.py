@@ -112,13 +112,14 @@ def matching_score_genimage_id(images_path, list_id_path):
 def parse_args():
     parser = argparse.ArgumentParser(description='FDFR and ISM evaluation')
     parser.add_argument('--data_dir', type=str, default='', required=True, help='path to datadir')
-    parser.add_argument('--emb_dir', type=str, default='', required=True, help='path to embedding dir')
+    parser.add_argument('--emb_dirs', metavar='N', type=str, nargs='+', help='list of paths to clean image')
+    # parser.add_argument('--emb_dir', type=str, default='', required=True, help='path to embedding dir')
     args = parser.parse_args()
     return args
 
 def main():
     args = parse_args()
-    ism, fdr = matching_score_genimage_id(args.data_dir, args.emb_dir)
+    ism, fdr = matching_score_genimage_id(args.data_dir, args.emb_dirs)
     print("ISM and FDR are {} and {}".format(ism, fdr))
     
 if __name__ == '__main__':
