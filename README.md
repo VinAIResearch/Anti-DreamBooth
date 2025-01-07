@@ -8,7 +8,7 @@
 <a href="https://anti-dreambooth.github.io/"><img src="https://img.shields.io/badge/Website-anti--dreambooth.github.io-blue?style=for-the-badge"></a>
 <a href="https://arxiv.org/abs/2303.15433"><img src="https://img.shields.io/badge/arxiv-2303.15433-red?style=for-the-badge"></a>
 <div align="center">
-  <a href="https://github.com/Luvata" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
+  <a href="https://luvata.github.io/" target="_blank">Thanh&nbsp;Van&nbsp;Le</a> &emsp;
   <a href="https://hao-pt.github.io/" target="_blank">Hao&nbsp;Phung</a> &emsp;
   <a href="https://thuanz123.github.io/" target="_blank">Thuan&nbsp;Hoang&nbsp;Nguyen</a> &emsp;
   <a href="https://quandao10.github.io/" target="_blank">Quan&nbsp;Dao</a> &emsp;
