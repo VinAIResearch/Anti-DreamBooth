@@ -43,6 +43,7 @@ Details of algorithms and experimental results can be found in [our following pa
 **News**
 - [29th Oct, 2023] Add [evaluations](./evaluations) code
 - [02nd Aug, 2023] Provide download links for datasets in [Dataset preparation](#dataset-preparation)
+- [15th Aug, 2025] Add LoRA implementation
 
 ## Environment setup
 
@@ -55,6 +56,8 @@ conda create -n anti-dreambooth python=3.9
 conda activate anti-dreambooth  
 pip install -r requirements.txt  
 ```
+
+Note that the LoRA implementation is tested on diffusers==0.23.1, accelerate==0.33.0, transformers==4.48.3.
 
 Pretrained checkpoints of different Stable Diffusion versions can be **downloaded** from provided links in the table below:
 <table style="width:100%">
