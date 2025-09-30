@@ -473,6 +473,12 @@ def train_one_epoch(
         print(
             f"Step #{step}, loss: {loss.detach().item()}, prior_loss: {prior_loss.detach().item()}, instance_loss: {instance_loss.detach().item()}"
         )
+        
+        unet.zero_grad()
+        text_encoder.zero_grad()
+        # Clear GPU memory periodically during training
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     return [unet, text_encoder]
 
@@ -566,6 +572,12 @@ def pgd_attack(
         eta = torch.clamp(adv_images - original_images, min=-eps, max=+eps)
         perturbed_images = torch.clamp(original_images + eta, min=-1, max=+1).detach_()
         print(f"PGD loss - step {step}, loss: {loss.detach().item()}")
+        
+        unet.zero_grad()
+        text_encoder.zero_grad()
+        # Clear GPU memory periodically during PGD attack
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     return perturbed_images
 
 
@@ -724,6 +736,9 @@ def main(args):
             clean_data,
             args.max_f_train_steps,
         )
+        # Clear GPU memory after surrogate model training
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         perturbed_data = pgd_attack(
             args,
             f_sur,
@@ -735,6 +750,9 @@ def main(args):
             target_latent_tensor,
             args.max_adv_train_steps,
         )
+        # Clear GPU memory after PGD attack
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         f = train_one_epoch(
             args,
             f,
@@ -744,7 +762,9 @@ def main(args):
             perturbed_data,
             args.max_f_train_steps,
         )
-
+        # Clear GPU memory after main model training
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         if (i + 1) % args.checkpointing_iterations == 0:
             save_folder = f"{args.output_dir}/noise-ckpt/{i+1}"
             os.makedirs(save_folder, exist_ok=True)

@@ -821,14 +821,12 @@ def main(args):
     clean_data = load_data(
         args.instance_data_dir_for_train,
         size=args.resolution,
-        center_crop=args.center_crop,
-        device=device,
+        center_crop=args.center_crop
     )
     perturbed_data = load_data(
         args.instance_data_dir_for_adversarial,
         size=args.resolution,
-        center_crop=args.center_crop,
-        device=device,
+        center_crop=args.center_crop
     )
     original_data = perturbed_data.clone().to(device)
     original_data.requires_grad_(False)
