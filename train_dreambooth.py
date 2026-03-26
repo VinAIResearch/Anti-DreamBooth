@@ -543,7 +543,11 @@ def infer(checkpoint_path, prompts=None, n_img=16, bs=8, n_steps=100, guidance_s
     pipe = StableDiffusionPipeline.from_pretrained(
         checkpoint_path, torch_dtype=torch.bfloat16, safety_checker=None
     ).to("cuda")
-    pipe.enable_xformers_memory_efficient_attention()
+    if is_xformers_available():
+        try:
+            pipe.enable_xformers_memory_efficient_attention()
+        except Exception:
+            pass  # torch 2.x SDPA handles this automatically
     pipe.disable_attention_slicing()
 
     for prompt in prompts:
@@ -581,7 +585,7 @@ def main(args):
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         mixed_precision=args.mixed_precision,
         log_with=args.report_to,
-        logging_dir=logging_dir,
+        project_dir=logging_dir,
     )
 
     # Currently, it's not possible to do gradient accumulation when training two models with accelerate.accumulate
@@ -635,7 +639,11 @@ def main(args):
                 revision=args.revision,
             )
             pipeline.set_progress_bar_config(disable=True)
-            pipeline.enable_xformers_memory_efficient_attention()
+            if is_xformers_available():
+                try:
+                    pipeline.enable_xformers_memory_efficient_attention()
+                except Exception:
+                    pass  # torch 2.x SDPA handles this automatically
             pipeline.disable_attention_slicing()
 
             num_new_images = args.num_class_images - cur_class_images
